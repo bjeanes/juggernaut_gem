@@ -146,7 +146,7 @@ module Juggernaut
        uri = URI.parse(url)
        uri.path = '/' if uri.path == ''
        params = []
-       params << "authenticity_token=#{authenticity_token}"
+       params << "request_forgery_protection_token=#{authenticity_token}"
        params << "client_id=#{id}" if id
        params << "session_id=#{session_id}" if session_id
        channels.each {|chan| params << "channels[]=#{chan}" }
