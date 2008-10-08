@@ -1,7 +1,6 @@
 require 'timeout'
 require 'net/http'
 require 'uri'
-require 'openssl'
 
 module Juggernaut
   class Client
@@ -146,7 +145,6 @@ module Juggernaut
        uri = URI.parse(url)
        uri.path = '/' if uri.path == ''
        params = []
-       params << "request_forgery_protection_token=#{authenticity_token}"
        params << "client_id=#{id}" if id
        params << "session_id=#{session_id}" if session_id
        channels.each {|chan| params << "channels[]=#{chan}" }
@@ -171,14 +169,6 @@ module Juggernaut
          return false
        end
        true
-     end
-     
-     def authenticity_token
-       @authenticity_token ||= begin
-         key = Juggernaut.options[:protect_from_forgery_secret]
-         digest = Juggernaut.options[:protect_from_forgery_digest] || 'SHA1'
-         OpenSSL::HMAC.hexdigest(OpenSSL::Digest::Digest.new(digest), key.to_s, session_id.to_s)
-       end
      end
    end
  end
