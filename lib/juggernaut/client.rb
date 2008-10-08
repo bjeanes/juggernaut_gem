@@ -1,6 +1,8 @@
 require 'timeout'
 require 'net/http'
 require 'uri'
+require 'openssl'
+
 module Juggernaut
   class Client
     include Juggernaut::Miscel
@@ -140,10 +142,11 @@ module Juggernaut
 
    private
 
-     def post_request(url, channels = [])
+     def post_request(url, channels = [])       
        uri = URI.parse(url)
        uri.path = '/' if uri.path == ''
        params = []
+       params << "authenticity_token=#{authenticity_token}"
        params << "client_id=#{id}" if id
        params << "session_id=#{session_id}" if session_id
        channels.each {|chan| params << "channels[]=#{chan}" }
@@ -157,6 +160,7 @@ module Juggernaut
          http.read_timeout = 5
          resp, data = http.post(uri.path, params.join('&'), headers)
          unless resp.is_a?(Net::HTTPOK)
+           logger.debug("RESPONSE: #{resp.code}")
            return false
          end
        rescue => e
@@ -167,6 +171,14 @@ module Juggernaut
          return false
        end
        true
-     end   
+     end
+     
+     def authenticity_token
+       @authenticity_token ||= begin
+         key = Juggernaut.options[:protect_from_forgery_secret]
+         digest = Juggernaut.options[:protect_from_forgery_digest] || 'SHA1'
+         OpenSSL::HMAC.hexdigest(OpenSSL::Digest::Digest.new(digest), key.to_s, session_id.to_s)
+       end
+     end
    end
  end
