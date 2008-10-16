@@ -115,6 +115,11 @@ module Juggernaut
          em.broadcast(msg) if !channels or channels.empty? or em.has_channels?(channels)
        end
      end
+     
+     # Return a list of all channels
+     def channels
+       @connections.map{|c|c.channels}.flatten.uniq.sort
+     end
 
      def has_channels?(channels)
        @connections.each do |em|
